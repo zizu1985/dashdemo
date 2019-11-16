@@ -1,0 +1,28 @@
+FROM ubuntu:18.04
+
+USER root
+
+RUN apt-get update                                  && \
+    apt-get install -y software-properties-common   && \
+    add-apt-repository ppa:jonathonf/python-3.6     && \
+    apt-get update                                  && \
+    apt-get install -y build-essential python3.6 python3.6-dev python3-pip python3.6-venv && \
+    python3.6 -m pip install pip --upgrade && \
+    useradd -m pureadmin
+
+USER pureadmin
+
+RUN pip3 install --user dash==1.6.0          && \
+    pip3 install --user dash-daq==0.2.1      && \
+    mkdir /home/pureadmin/application 
+
+USER root
+
+COPY . /home/pureadmin/application
+RUN cd /home/pureadmin/application      && \
+    chown pureadmin:pureadmin /home/pureadmin/application/app.py 
+
+USER root
+
+EXPOSE 8080
+CMD [ "su", "-", "pureadmin", "-c", "nohup python3 /home/pureadmin/application/app.py 2>&1 1>log &" ]
